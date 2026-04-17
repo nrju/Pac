@@ -1,0 +1,60 @@
+<!--
+  This file contains common settings for all projects inside the `src` directory.
+-->
+<Project>
+  <!-- `Msbuild` doesn't traverse up directories for the `Directory.Build.props` files, so
+       we require the manual import. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <!-- Strong code and style analysis -->
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-All</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <!-- Require and generate XML docs -->
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- Suppress warnings on 'dotnet pack' at the solution when some included projects
+       could be not packable -->
+  <PropertyGroup>
+    <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
+  </PropertyGroup>
+
+  <!-- Get the README.md from the solution folder and pack it into the Nuget package if the project
+       is packable. (https://devblogs.microsoft.com/nuget/add-a-readme-to-your-nuget-package/) -->
+  <PropertyGroup>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+  <!-- Embed release notes from the solution directory into the package if the project is packable.
+       https://dev.to/j_sakamoto/writing-a-nuget-package-release-notes-in-an-outside-of-a-csproj-file-3f94 -->
+  <Target Name="PreparePackageReleaseNotesFromFile" BeforeTargets="GenerateNuspec">
+    <ReadLinesFromFile File="..\..\RELEASE-NOTES">
+      <Output TaskParameter="Lines" ItemName="ReleaseNotes"/>
+    </ReadLinesFromFile>
+  </Target>
+  <PropertyGroup>
+    <PackageReleaseNotes>@(ReleaseNotes, '%0a')</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <!-- Add commonly used assembly attributes. -->
+  <ItemGroup>
+    <!-- Required to test internal types and methods. -->
+    <InternalsVisibleTo Include="$(MSBuildProjectName).Tests" />
+    <!-- Best practices require to include the attributes below. Also, strong enough CA requires them. -->
+    <AssemblyAttribute Include="System.CLSCompliantAttribute">
+      <_Parameter1>true</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Resources.NeutralResourcesLanguageAttribute">
+      <_Parameter1>en</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+</Project>

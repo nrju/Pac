@@ -1,0 +1,60 @@
+name: CI workflow
+
+on:
+  # Ability to run the workflow manually.
+  workflow_dispatch:
+
+  # Run the workflow on a pull request creation.
+  pull_request:
+    branches:
+      - main
+
+  # Run the workflow on the main branch push (and, so on, also PR completion).
+  push:
+    branches:
+      - main
+
+  # Run the workflow on release publishing.
+  release:
+    types:
+      - published
+
+# Permissions required to work with packages
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  main:
+    name: Main workflow job
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          source-url: https://nuget.pkg.github.com/$GITHUB_REPOSITORY_OWNER/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build -c Release --no-restore
+
+      - name: Run tests
+        run: dotnet test -c Release --no-build
+
+      - name: Login to container registry
+        if: github.event_name == 'release'
+        run: docker login -u $GITHUB_REPOSITORY_OWNER -p $GITHUB_TOKEN ghcr.io
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Build and publish docker image
+        if: github.event_name == 'release'
+        run: dotnet publish /t:PublishContainer -c Release /p:ContainerRegistry=ghcr.io --no-build

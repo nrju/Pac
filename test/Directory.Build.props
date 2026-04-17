@@ -1,0 +1,66 @@
+<!--
+  This file contains common settings for all projects inside the `test` directory.
+-->
+<Project>
+  <!-- `Msbuild` doesn't traverse up directories for the `Directory.Build.props` files, so
+       we require the manual import. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <!-- Determine the 'SUT' (System Under Test) project name.
+       If the test project's name is e.g. Foo.Tests.csproj and there's a project named
+       `Foo.csproj` directly inside the `src` directory then it will be considered as
+       a `SUT` project for this one. -->
+  <PropertyGroup>
+    <SutProjectName>$([System.Text.RegularExpressions.Regex]::Replace('$(MSBuildProjectName)', '\.Tests$', ''))</SutProjectName>
+  </PropertyGroup>
+
+  <!-- Adjust the test types' root namespace (Personally, find it slightly convenient when the
+      "test" class and the "testee" type reside in the same namespace. If you don't like it feel free
+       to override this. -->
+  <PropertyGroup Condition="'$(RootNamespace)' == ''">
+    <RootNamespace>$(SutProjectName)</RootNamespace>
+  </PropertyGroup>
+
+  <!-- Enable code coverage with the `coverlet` framework -->
+  <PropertyGroup>
+    <CollectCoverage>true</CollectCoverage>
+    <CoverletOutputFormat>cobertura</CoverletOutputFormat>
+    <CoverletOutput>TestResults/</CoverletOutput>
+    <DefaultItemExcludes>TestResults\**</DefaultItemExcludes>
+    <!-- Include only the 'SUT' project into code coverage -->
+    <Include>[$(SutProjectName)]*</Include>
+    <!-- Exclude the bootstrap code from code coverage -->
+    <Exclude>[*]Program,[*]*.Program,[*]*.Startup</Exclude>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.msbuild">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Common package references for all test projects -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="FakeItEasy"/>
+    <PackageReference Include="AwesomeAssertions"/>
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="FakeItEasy" />
+    <Using Include="AwesomeAssertions" />
+  </ItemGroup>
+
+  <!-- Automatic SUT project reference -->
+  <PropertyGroup>
+    <SutProjectPath>..\..\src\$(SutProjectName)\$(SutProjectName).csproj</SutProjectPath>
+  </PropertyGroup>
+  <ItemGroup Condition="Exists($(SutProjectPath))">
+    <ProjectReference Include="$(SutProjectPath)"/>
+  </ItemGroup>
+</Project>

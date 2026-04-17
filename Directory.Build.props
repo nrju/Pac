@@ -1,0 +1,62 @@
+<!--
+  This file contains common settings for all solution projects.
+-->
+<Project>
+
+  <!--
+     The current version for all projects.
+     If some project has a different version it can be overriden in its *.csproj file.
+  -->
+  <PropertyGroup>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionSuffix></VersionSuffix>
+  </PropertyGroup>
+
+  <!-- Common build properties. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!-- By default all projects are neither packable nor publishable. It can be overriden inside the
+       separate *.csproj file. -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsPublishable>false</IsPublishable>
+  </PropertyGroup>
+
+  <!-- Make internals visible to Castle. It's rerquired for tests and should be applied to both
+      "usual" and "test" projects. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
+  </ItemGroup>
+
+  <!--
+    The properties below are highly probable subject to customization.
+    For simplicity sake I've not yet bothered about doing it with template parameters.
+  -->
+
+  <PropertyGroup>
+    <GITHUB_REPO_OWNER>nrju</GITHUB_REPO_OWNER>
+    <GITHUB_REPO_NAME>Pac</GITHUB_REPO_NAME>
+  </PropertyGroup>
+
+  <!-- The properties below affect assemly (as assembly atttributes), NuGet package properties
+       in case the project is packable, and Docker images if it's built with the `msbuild` itself
+       without using Dockerfile. -->
+  <PropertyGroup>
+    <Product>$(GITHUB_REPO_NAME)</Product>
+    <Description>$(GITHUB_REPO_NAME)</Description>
+    <Company>$(GITHUB_REPO_OWNER)</Company>
+    <Authors>$(GITHUB_REPO_OWNER)</Authors>
+    <Copyright>© $(GITHUB_REPO_OWNER), 2025</Copyright>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryName>$(GITHUB_REPO_NAME)</RepositoryName>
+    <RepositoryUrl>https://github.com/$(GITHUB_REPO_OWNER)/$(GITHUB_REPO_NAME)</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
+    <PackageTags><!-- insert package tags here --></PackageTags>
+  </PropertyGroup>
+
+</Project>

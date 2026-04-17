@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <IsPublishable>true</IsPublishable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+  <!-- https://learn.microsoft.com/en-us/dotnet/core/containers/overview/ -->
+  <PropertyGroup>
+    <ContainerRepository>$(GITHUB_REPO_OWNER)/$(GITHUB_REPO_NAME)</ContainerRepository>
+    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:10.0-alpine</ContainerBaseImage>
+    <ContainerRuntimeIdentifier>linux-x64</ContainerRuntimeIdentifier>
+    <ContainerImageFormat>OCI</ContainerImageFormat>
+  </PropertyGroup>
+
+  <!-- Workaround https://github.com/dotnet/sdk-container-builds/issues/236 -->
+  <Target Name="SetContainerImageTag" BeforeTargets="PublishContainer">
+    <ItemGroup>
+      <ContainerImageTags Include="$(Version)" />
+    </ItemGroup>
+  </Target>
+
+</Project>
